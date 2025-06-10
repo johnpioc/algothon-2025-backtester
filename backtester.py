@@ -1,11 +1,15 @@
 import pandas as pd
 from pandas import DataFrame
-from typing import TypedDict, List, Dict
+from typing import TypedDict, List, Dict, Any
 import numpy as np
 from numpy import ndarray
 import matplotlib.pyplot as plt
+import importlib.util
+import sys
+import os
+from importlib.machinery import ModuleSpec
+from types import ModuleType
 
-from main import getMyPosition as getPosition
 
 # CONSTANTS #######################################################################################
 RAW_PRICES_FILEPATH: str = "./prices.txt"
@@ -21,6 +25,26 @@ PLOT_COLORS: Dict[str, str] = {
     "utilisation": "#ff7f0e"
 }
 
+default_strategy_filepath: str = "./main.py"
+strategy_function_name: str = "getMyPosition"
+strategy_file_not_found_message: str = "Strategy file not found"
+could_not_load_spec_message: str = "Could not load spec for module from strategy file"
+strategy_function_does_not_exist_message:str = ("getMyPosition function does not exist in strategy "
+                                              "file")
+strategy_function_not_callable_message: str = "getMyPosition function is not callable"
+
+usage_error: str = """
+    Usage: backtester.py [OPTIONS]
+    
+    OPTIONS:
+    --path [filepath: string] supply a custom filepath to your .py file that holds your
+        getMyPosition() function. If not specified, it will use the filepath "./main.py"
+    --timeline [start_day: int] [end_day: int] supply a custom start day and end day to run the
+        backtester in. start day >= 1 and end day <= 500. If not specified, backtester will run
+        throughout days 1-500
+    --disable-comms disable commission on trades
+"""
+
 # TYPE DECLARATIONS ###############################################################################
 class InstrumentPriceEntry(TypedDict):
     day: int
@@ -32,10 +56,93 @@ class BacktesterResults(TypedDict):
     daily_capital_utilisation: ndarray
     instrument_traded: ndarray
 
+class Params(TypedDict):
+    strategy_filepath: str | None
+    start_day: int | None
+    end_day: int | None
+    enable_commission: bool | None
+
+# HELPER FUNCTIONS ###############################################################################
+def parse_command_line_args() -> Params:
+    total_args: int = len(sys.argv)
+    params:Params = Params()
+    params["strategy_filepath"] = default_strategy_filepath
+    params["start_day"] = 1
+    params["end_day"] = 500
+    params["enable_commission"] = True
+
+    if total_args > 1:
+        i: int = 1
+        while (i < total_args):
+            current_arg: str = sys.argv[i]
+
+            if current_arg == "--path":
+                if i + 1 >= total_args:
+                    raise Exception(usage_error)
+                else:
+                    i += 1
+                    params["strategy_filepath"] = sys.argv[i]
+            elif current_arg == "--timeline":
+                if i + 2 >= total_args:
+                    raise Exception(usage_error)
+                else:
+                    params["start_day"] = int(sys.argv[i + 1])
+                    params["end_day"] = int(sys.argv[i + 2])
+                    i += 2
+
+                    if (params["start_day"] > params["end_day"] or params["start_day"] < 1 or
+                            params["end_day"] > 500):
+                        raise Exception(usage_error)
+            elif current_arg == "--disable-comms":
+                params["enable_commission"] = False
+            else:
+                raise Exception(usage_error)
+
+            i += 1
+
+    return params
+
+def load_get_positions_function(strategy_filepath: str) -> Any:
+    # Make sure file path is absolute and normalised
+    filepath: str = os.path.abspath(strategy_filepath)
+
+    # Check if file exists
+    if not os.path.isfile(filepath):
+        raise FileNotFoundError(strategy_file_not_found_message)
+
+    # Get module name
+    module_name: str = os.path.splitext(os.path.basename(filepath))[0]
+
+    # Load the module spec
+    spec: ModuleSpec = importlib.util.spec_from_file_location(module_name, filepath)
+    if spec is None:
+        raise ImportError(could_not_load_spec_message)
+
+    # Create a new module based on the spec
+    module: ModuleType = importlib.util.module_from_spec(spec)
+
+    # Create a new module based on the spec
+    sys.modules[module_name] = module
+
+    # Execute the module
+    spec.loader.exec_module(module)
+
+    # Get the strategy function from module
+    if not hasattr(module, strategy_function_name):
+        raise AttributeError(strategy_function_does_not_exist_message)
+    function = getattr(module, strategy_function_name)
+
+    # Verify that it's callable
+    if not callable(function):
+        raise TypeError(strategy_function_not_callable_message)
+
+    return function
+
 # BACKTESTER CLASS ################################################################################
 class Backtester:
-    def __init__(self, enable_commission: bool) -> None:
-        self.enable_commission: bool = enable_commission
+    def __init__(self, params: Params) -> None:
+        self.enable_commission: bool = params["enable_commission"]
+        self.getMyPosition = load_get_positions_function(params["strategy_filepath"])
 
         # Load prices data
         self.raw_prices_df: DataFrame = pd.read_csv(RAW_PRICES_FILEPATH, sep=r"\s+", header=None)
@@ -44,8 +151,13 @@ class Backtester:
         # row is a list of prices
         self.price_history: ndarray = self.raw_prices_df.to_numpy().T
 
-
     def run(self, start_day: int, end_day: int) -> BacktesterResults:
+        """
+        Run the backtest through specified timeline and keep track of daily PnL and capital usage
+        :param start_day: day that the backtester should start running on
+        :param end_day: day that the backtester should end running on (inclusive)
+        :return: a BacktesterResults() class that contains daily PnL data and capital usage per day
+        """
         # Initialise current positions, cash and portfolio value
         current_positions: ndarray = np.zeros(NUMBER_OF_INSTRUMENTS)
         cash: float = 0
@@ -61,7 +173,7 @@ class Backtester:
             prices_so_far: ndarray = self.price_history[:, start_day - 1:day]
 
             # Get desired positions from strategy
-            new_positions: ndarray = getPosition(prices_so_far)
+            new_positions: ndarray = self.getMyPosition(prices_so_far)
 
             # Get today's prices
             current_prices: ndarray = prices_so_far[:, -1]
@@ -108,8 +220,17 @@ class Backtester:
 
         return backtester_results
 
+
     def show_dashboard(self, backtester_results: BacktesterResults, start_day: int,
        end_day: int) -> None:
+        """
+        Generates and shows a dashboard that summarises a backtest's results. Shows stats such
+        as mean PnL and sharpe ratio and plots cumulative PnL, Daily PnL and capital utilisation
+        :param backtester_results: contains data on a backtest
+        :param start_day: start day of the backtest
+        :param end_day: end day of the backtest
+        :return: None
+        """
         daily_pnl:ndarray = backtester_results["daily_pnl"]
         daily_capital_utilisation:ndarray = backtester_results["daily_capital_utilisation"]
 
@@ -174,27 +295,12 @@ class Backtester:
         plt.suptitle("Backtest Performance Summary", fontsize=16, fontweight="bold")
         plt.show()
 
-
-
-
 # MAIN EXECUTION #################################################################################
 def main() -> None:
-    backtester: Backtester = Backtester(True)
-    backtester_results: BacktesterResults = backtester.run(1, 500)
-    backtester.show_dashboard(backtester_results, 1, 500)
+    params: Params = parse_command_line_args()
+    backtester: Backtester = Backtester(params)
+    backtester_results: BacktesterResults = backtester.run(params["start_day"],
+           params["end_day"])
+    backtester.show_dashboard(backtester_results, params["start_day"], params["end_day"])
 
 main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
