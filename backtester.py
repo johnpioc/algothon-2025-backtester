@@ -57,10 +57,10 @@ class BacktesterResults(TypedDict):
     instrument_traded: ndarray
 
 class Params(TypedDict):
-    strategy_filepath: str | None
-    start_day: int | None
-    end_day: int | None
-    enable_commission: bool | None
+    strategy_filepath: str
+    start_day: int
+    end_day: int
+    enable_commission: bool
 
 # HELPER FUNCTIONS ###############################################################################
 def parse_command_line_args() -> Params:
