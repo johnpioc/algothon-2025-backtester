@@ -8,7 +8,7 @@ such as cumulative PnL, sharpe ratio and capital utilisation.
 ### ✅ Why Use it?
 Most teams will need to build a backtester from scratch. This one's ready to go:
 
-- Easily run it from the command line to gain insights about your trading strategies fast and easily
+- Easily run it from the command line to gain insights about your trading strategies fast
 - Alternatively, import the Backtester() class into your python files / Jupyter Notebooks to 
   access the wide range of insightful plotting and backtester summary functions
 - Saves time so you and your team can focus on your strategy, not infrastructure
