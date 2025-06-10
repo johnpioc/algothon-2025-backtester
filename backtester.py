@@ -1,6 +1,6 @@
 import pandas as pd
 from pandas import DataFrame
-from typing import TypedDict, List
+from typing import TypedDict, List, Dict
 import numpy as np
 from numpy import ndarray
 import matplotlib.pyplot as plt
@@ -14,6 +14,12 @@ END_DAY:int = 0
 INSTRUMENT_POSITION_LIMIT: int = 10000
 COMMISSION_RATE: float = 0.0010
 NUMBER_OF_INSTRUMENTS: int = 50
+
+PLOT_COLORS: Dict[str, str] = {
+    "pnl": "#2ca02c",
+    "cum_pnl": "#1f77b4",
+    "utilisation": "#ff7f0e"
+}
 
 # TYPE DECLARATIONS ###############################################################################
 class InstrumentPriceEntry(TypedDict):
@@ -108,6 +114,7 @@ class Backtester:
         daily_capital_utilisation:ndarray = backtester_results["daily_capital_utilisation"]
 
         fig,axs = plt.subplots(2, 2, figsize=(18,8))
+
         # Show Stats
         axs[0][0].axis("off")
 
@@ -121,36 +128,50 @@ class Backtester:
             f"Score: {daily_pnl.mean() - 0.1*daily_pnl.std():.2f}"
         )
 
-        axs[0][0].text(0.05, 0.95, stats_text, fontsize=14, va="top", ha="left")
+        axs[0][0].text(0.05, 0.95, stats_text, fontsize=14, va="top", ha="left", linespacing=1.5)
 
         days: ndarray = np.arange(start_day, end_day + 1)
 
         # Plot Cumulative PnL over timeline
         cumulative_pnl: ndarray = np.cumsum(daily_pnl)
 
-        axs[0][1].set_title(f"Cumulative Profit and Loss from day {start_day} to {end_day}")
-        axs[0][1].set_xlabel("Days")
-        axs[0][1].set_ylabel("Total PnL ($)")
-        axs[0][1].grid(True)
-        axs[0][1].plot(days, cumulative_pnl, linestyle="-")
+        axs[0][1].set_title(f"Cumulative Profit and Loss from day {start_day} to {end_day}",
+                            fontsize=12, fontweight="bold")
+        axs[0][1].set_xlabel("Days", fontsize=10)
+        axs[0][1].set_ylabel("Total PnL ($)", fontsize=10)
+        axs[0][1].grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
+        axs[0][1].spines["top"].set_visible(False)
+        axs[0][1].spines["right"].set_visible(False)
+        axs[0][1].plot(days, cumulative_pnl, linestyle="-", color=PLOT_COLORS["cum_pnl"],
+               linewidth=2)
 
         # Plot PnL over timeline
-        axs[1][0].set_title(f"Daily Profit and Loss (PnL) from day {start_day} to {end_day}")
-        axs[1][0].set_xlabel("Days")
-        axs[1][0].set_ylabel("PnL ($)")
-        axs[1][0].grid(True)
-        axs[1][0].plot(days, daily_pnl, linestyle="-")
+        axs[1][0].set_title(f"Daily Profit and Loss (PnL) from day {start_day} to {end_day}",
+            fontsize=12, fontweight="bold")
+        axs[1][0].set_xlabel("Days", fontsize=10)
+        axs[1][0].set_ylabel("PnL ($)", fontsize=10)
+        axs[1][0].grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
+        axs[1][0].spines["top"].set_visible(False)
+        axs[1][0].spines["right"].set_visible(False)
+        axs[1][0].plot(days, daily_pnl, linestyle="-", color=PLOT_COLORS["pnl"])
 
         # Plot daily capital utilisation
         daily_capital_utilisation_pct: ndarray = daily_capital_utilisation * 100
 
-        axs[1][1].set_title(f"Daily capital utilisation from day {start_day} to {end_day}")
-        axs[1][1].set_xlabel("Days")
-        axs[1][1].set_ylabel("Capital Utilisation %")
-        axs[1][1].grid(True)
-        axs[1][1].plot(days, daily_capital_utilisation_pct, linestyle="-")
+        axs[1][1].set_title(f"Daily capital utilisation from day {start_day} to {end_day}",
+            fontsize=12, fontweight="bold")
+        axs[1][1].set_xlabel("Days", fontsize=10)
+        axs[1][1].set_ylabel("Capital Utilisation %", fontsize=10)
+        axs[1][1].grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
+        axs[1][1].spines["top"].set_visible(False)
+        axs[1][1].spines["right"].set_visible(False)
+        axs[1][1].set_ylim(0, 100)
+        axs[1][1].plot(days, daily_capital_utilisation_pct, linestyle="-", color=PLOT_COLORS[
+            "utilisation"])
 
         plt.tight_layout()
+        plt.subplots_adjust(top=0.88)
+        plt.suptitle("Backtest Performance Summary", fontsize=16, fontweight="bold")
         plt.show()
 
 
