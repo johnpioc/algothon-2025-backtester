@@ -16,7 +16,7 @@ RAW_PRICES_FILEPATH: str = "./prices.txt"
 START_DAY:int = 0
 END_DAY:int = 0
 INSTRUMENT_POSITION_LIMIT: int = 10000
-COMMISSION_RATE: float = 0.0010
+COMMISSION_RATE: float = 0.0005
 NUMBER_OF_INSTRUMENTS: int = 50
 
 PLOT_COLORS: Dict[str, str] = {
@@ -30,7 +30,7 @@ strategy_function_name: str = "getMyPosition"
 strategy_file_not_found_message: str = "Strategy file not found"
 could_not_load_spec_message: str = "Could not load spec for module from strategy file"
 strategy_function_does_not_exist_message:str = ("getMyPosition function does not exist in strategy "
-                                              "file")
+                                                "file")
 strategy_function_not_callable_message: str = "getMyPosition function is not callable"
 
 usage_error: str = """
@@ -68,7 +68,7 @@ def parse_command_line_args() -> Params:
     params:Params = Params()
     params["strategy_filepath"] = default_strategy_filepath
     params["start_day"] = 1
-    params["end_day"] = 500
+    params["end_day"] = 750
     params["enable_commission"] = True
 
     if total_args > 1:
@@ -180,7 +180,7 @@ class Backtester:
 
             # Calculate position limits
             position_limits: ndarray = np.array([int(x) for x in INSTRUMENT_POSITION_LIMIT /
-                current_prices])
+                                                 current_prices])
 
             # Adjust specified positions considering the position limit
             adjusted_positions: ndarray = np.clip(new_positions, -position_limits, position_limits)
@@ -192,7 +192,7 @@ class Backtester:
 
             # Calculate capital utilisation
             capital_utilisation: float = total_volume / (INSTRUMENT_POSITION_LIMIT
-                 * NUMBER_OF_INSTRUMENTS)
+                                                         * NUMBER_OF_INSTRUMENTS)
             daily_capital_utilisation_list.append(capital_utilisation)
 
             # If commission is enabled, calculate it
@@ -222,7 +222,7 @@ class Backtester:
 
 
     def show_dashboard(self, backtester_results: BacktesterResults, start_day: int,
-       end_day: int) -> None:
+                       end_day: int) -> None:
         """
         Generates and shows a dashboard that summarises a backtest's results. Shows stats such
         as mean PnL and sharpe ratio and plots cumulative PnL, Daily PnL and capital utilisation
@@ -240,13 +240,13 @@ class Backtester:
         axs[0][0].axis("off")
 
         stats_text: str = (
-            f"Ran from day {start_day} to {end_day}\n"
-            r"$\bf{Commission \ Turned \ On:}$" + f"{self.enable_commission}\n\n"
-            r"$\bf{Backtester \ Stats}$" + "\n\n"
-            f"Mean PnL: ${daily_pnl.mean():.2f}\n"
-            f"Std Dev: ${daily_pnl.std():.2f}\n"
-            f"Annualised Sharpe Ratio: {np.sqrt(250) * daily_pnl.mean() / daily_pnl.std():.2f}\n"
-            f"Score: {daily_pnl.mean() - 0.1*daily_pnl.std():.2f}"
+                f"Ran from day {start_day} to {end_day}\n"
+                r"$\bf{Commission \ Turned \ On:}$" + f"{self.enable_commission}\n\n"
+                                                      r"$\bf{Backtester \ Stats}$" + "\n\n"
+                                                                                     f"Mean PnL: ${daily_pnl.mean():.2f}\n"
+                                                                                     f"Std Dev: ${daily_pnl.std():.2f}\n"
+                                                                                     f"Annualised Sharpe Ratio: {np.sqrt(250) * daily_pnl.mean() / daily_pnl.std():.2f}\n"
+                                                                                     f"Score: {daily_pnl.mean() - 0.1*daily_pnl.std():.2f}"
         )
 
         axs[0][0].text(0.05, 0.95, stats_text, fontsize=14, va="top", ha="left", linespacing=1.5)
@@ -264,11 +264,11 @@ class Backtester:
         axs[0][1].spines["top"].set_visible(False)
         axs[0][1].spines["right"].set_visible(False)
         axs[0][1].plot(days, cumulative_pnl, linestyle="-", color=PLOT_COLORS["cum_pnl"],
-               linewidth=2)
+                       linewidth=2)
 
         # Plot PnL over timeline
         axs[1][0].set_title(f"Daily Profit and Loss (PnL) from day {start_day} to {end_day}",
-            fontsize=12, fontweight="bold")
+                            fontsize=12, fontweight="bold")
         axs[1][0].set_xlabel("Days", fontsize=10)
         axs[1][0].set_ylabel("PnL ($)", fontsize=10)
         axs[1][0].grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
@@ -280,7 +280,7 @@ class Backtester:
         daily_capital_utilisation_pct: ndarray = daily_capital_utilisation * 100
 
         axs[1][1].set_title(f"Daily capital utilisation from day {start_day} to {end_day}",
-            fontsize=12, fontweight="bold")
+                            fontsize=12, fontweight="bold")
         axs[1][1].set_xlabel("Days", fontsize=10)
         axs[1][1].set_ylabel("Capital Utilisation %", fontsize=10)
         axs[1][1].grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
@@ -300,7 +300,7 @@ def main() -> None:
     params: Params = parse_command_line_args()
     backtester: Backtester = Backtester(params)
     backtester_results: BacktesterResults = backtester.run(params["start_day"],
-           params["end_day"])
+                                                           params["end_day"])
     backtester.show_dashboard(backtester_results, params["start_day"], params["end_day"])
 
 main()
