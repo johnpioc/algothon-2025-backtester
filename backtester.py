@@ -40,8 +40,8 @@ usage_error: str = """
     --path [filepath: string] supply a custom filepath to your .py file that holds your
         getMyPosition() function. If not specified, it will use the filepath "./main.py"
     --timeline [start_day: int] [end_day: int] supply a custom start day and end day to run the
-        backtester in. start day >= 1 and end day <= 500. If not specified, backtester will run
-        throughout days 1-500
+        backtester in. start day >= 1 and end day <= 750. If not specified, backtester will run
+        throughout days 1-750
     --disable-comms disable commission on trades
 """
 
@@ -91,7 +91,7 @@ def parse_command_line_args() -> Params:
                     i += 2
 
                     if (params["start_day"] > params["end_day"] or params["start_day"] < 1 or
-                            params["end_day"] > 500):
+                            params["end_day"] > 750):
                         raise Exception(usage_error)
             elif current_arg == "--disable-comms":
                 params["enable_commission"] = False
@@ -242,11 +242,11 @@ class Backtester:
         stats_text: str = (
                 f"Ran from day {start_day} to {end_day}\n"
                 r"$\bf{Commission \ Turned \ On:}$" + f"{self.enable_commission}\n\n"
-                                                      r"$\bf{Backtester \ Stats}$" + "\n\n"
-                                                                                     f"Mean PnL: ${daily_pnl.mean():.2f}\n"
-                                                                                     f"Std Dev: ${daily_pnl.std():.2f}\n"
-                                                                                     f"Annualised Sharpe Ratio: {np.sqrt(250) * daily_pnl.mean() / daily_pnl.std():.2f}\n"
-                                                                                     f"Score: {daily_pnl.mean() - 0.1*daily_pnl.std():.2f}"
+                r"$\bf{Backtester \ Stats}$" + "\n\n"
+                f"Mean PnL: ${daily_pnl.mean():.2f}\n"
+                f"Std Dev: ${daily_pnl.std():.2f}\n"
+                f"Annualised Sharpe Ratio: {np.sqrt(250) * daily_pnl.mean() / daily_pnl.std():.2f}\n"
+                f"Score: {daily_pnl.mean() - 0.1*daily_pnl.std():.2f}"
         )
 
         axs[0][0].text(0.05, 0.95, stats_text, fontsize=14, va="top", ha="left", linespacing=1.5)
