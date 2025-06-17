@@ -35,7 +35,7 @@ pip install numpy matplotlib pandas
    that includes this function (see usage below) 
 5. Make sure your prices.txt file is in the same directory as your backtester.py file
 
-### 👾 Basic Usage (Command Line)
+### 👾 Command Line Usage
 Once you've completed all the setup steps. You can run the backtester by typing the below into 
 your command line:
 ```shell
@@ -46,9 +46,49 @@ that the competition organisers supplied to us, which shows the following dashbo
 
 ![basic-usage-dashboard](./images/basic-usage.png)
 
-Alternatively, you can specify a timeline that you would like to run the backtester on using the 
+**Specifying a timeline**
+
+You can specify a timeline that you would like to run the backtester on using the 
 `--timeline` option
 ```shell
 python backtester.py --timeline 200 400
 ```
 This will run the backtester from day 200 to 400.
+
+**Turning Off Commissions**
+
+You can also turn off the 5 basis points commission that is imposed for every trade you make 
+using the `--disable-comms` option
+
+```shell
+python backtester.py --disable-comms
+```
+
+**Providing a different filepath to your getMyPositions() function**
+
+If you have your `getMyPositions()` function in a different filepath, you can run a backtest on 
+that function by providing the filepath to it.
+
+```shell
+python backtester.py --path [FILEPATH]
+```
+
+**Providing an alternative name to getMyPositions()**
+
+If you have a function that acts like `getMyPositions()` - returns positions for all 50 assets - 
+but is called something else, you can run a backtest on it using the commands below
+
+```shell
+python backtester.py --function-name [FUNCTION NAME: do not include the ()]
+```
+
+**Super Example**
+
+Suppose we want to run a backtest from day 150 to 200 and we have a function called 
+`get_johns_positions()` that returns an `ndarray` of positions located in filepath `..
+/john/johns_strategy.py`.
+
+```shell
+python backtester.py --timeline 150 200 --path "../john/johns_strategy.py" --function-name 
+get_johns_position
+```
