@@ -44,7 +44,7 @@ python backtester.py
 This runs your trading strategy on all instruments throughout the whole timeline of price data 
 that the competition organisers supplied to us, which shows the following dashboard
 
-![basic-usage-dashboard](./images/basic-usage.png)
+![basic-usage-dashboard](./images/basic_usage.png)
 
 **Specifying a timeline**
 
@@ -67,7 +67,7 @@ python backtester.py --disable-comms
 **Specifying the graphs to be shown**
 
 In the Backtester Dashboard, you can choose up to 3 graphs to be shown. By default, it will show cumulative PnL,
-daily PnL and daily capital utilisation %. 
+sharpe ratio heat map and daily PnL. 
 
 To specify the graphs you would like to see, you can use the `--show` option:
 

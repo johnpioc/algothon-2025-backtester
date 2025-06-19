@@ -103,7 +103,7 @@ class Params:
         start_day: int = 1,
         end_day: int = 750,
         enable_commission: bool = True,
-        graphs: List[str] = ["cum-pnl", "daily-pnl", "capital-util"],
+        graphs: List[str] = ["cum-pnl", "sharpe-heat-map", "daily-pnl"],
     ) -> None:
         self.strategy_filepath = strategy_filepath
         self.strategy_function_name = strategy_function_name
@@ -169,8 +169,6 @@ def parse_command_line_args() -> Params:
                         current_arg = sys.argv[i]
                     else:
                         break
-                if len(params.graphs) == 0:
-                    params.graphs = ["daily-pnl", "cum-pnl", "capital-util"]
                 i -= 1
             else:
                 raise Exception(usage_error)
