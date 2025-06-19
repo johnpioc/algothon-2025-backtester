@@ -64,6 +64,25 @@ using the `--disable-comms` option
 python backtester.py --disable-comms
 ```
 
+**Specifying the graphs to be shown**
+
+In the Backtester Dashboard, you can choose up to 3 graphs to be shown. By default, it will show cumulative PnL,
+daily PnL and daily capital utilisation %. 
+
+To specify the graphs you would like to see, you can use the `--show` option:
+
+```shell
+python backtester.py --show [GRAPH_1] [GRAPH_2: optional] [GRAPH_3: optional]
+```
+
+When `--show` is specified, you must at least specify one graph and have a max of 3. The available graphs to choose from are:
+
+- `daily-pnl`: Plots your daily profit and loss over the timeline
+- `cum-pnl`: Plots your cumulative profit and loss over the timeline
+- `capital-util`: Plots your daily capital utilisation over the timeline
+- `cum-sharpe`: Plots your cumulative sharpe ratio over the timeline
+- `sharpe-heat-map`: Shows a heatmap of each instrument and their respective sharpe ratio
+
 **Providing a different filepath to your getMyPositions() function**
 
 If you have your `getMyPositions()` function in a different filepath, you can run a backtest on 
