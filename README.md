@@ -1,6 +1,6 @@
 # 📊 John's Algothon 2025 Backtester
 
-An comprehensive and open-source backtester configured specifically for the UNSW x Susquehanna 
+A comprehensive and open-source backtester configured specifically for the UNSW x Susquehanna 
 International Group Algothon 2025. This repository provides an plug-and-play backtester that 
 simulates your trading strategy against the supplied price data and outputs insightful results 
 such as cumulative PnL, sharpe ratio and capital utilisation.
@@ -45,6 +45,14 @@ This runs your trading strategy on all instruments throughout the whole timeline
 that the competition organisers supplied to us, which shows the following dashboard
 
 ![basic-usage-dashboard](./images/basic_usage.png)
+
+After exiting the dashboard, the backester will also show you a graph that plots your buys/sells 
+for each instrument over the timeline - making it easier for you to spot where your algorithm 
+may be going wrong.
+
+![entry-plotter](./images/entry_plotter.png)
+
+To switch between instruments, use the left and right arrow keys on your keyboard.
 
 **Specifying a timeline**
 
